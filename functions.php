@@ -19,8 +19,6 @@ function extractUser() {
   if (isset($_SERVER['HTTP_NIGHTBOT_USER'])) {
     $nightbotUser = $_SERVER['HTTP_NIGHTBOT_USER'];
     return preg_replace('~^.*?name=([^&]+)&.*?$~', '\\1', $nightbotUser);
-  } else if (isset($_GET['u'])) {
-    return $_GET['u']; // TODO just for testing
   }
   return null;
 }

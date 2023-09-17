@@ -46,15 +46,18 @@ if ($oldRating === $rating) {
 }
 
 $db->addOrUpdateRating($user, $levelId, (int) $matches[2]);
+
+$avgAndCount = $db->getAverage($levelId);
+
 if ($oldRating) {
-  if ($oldRating > $rating) {
-    $emojis = ['🔽', '📉', '👇'];
-  } else {
-    $emojis = ['⬆️', '💹', '🚀'];
-  }
+  $emojis = ($oldRating > $rating)
+    ? ['🔽', '📉', '👇']
+    : ['⬆️', '💹', '🚀'];
 
   $emoji = $emojis[rand(0, count($emojis) - 1)];
-  echo toResultJson($user . ' changed their rating of ' . $levelName . ' from ' . $oldRating . '/5 to ' . $rating . '/5 ' . $emoji);
+  $ratingText = $user . ' changed their rating of ' . $levelName . ' to ' . $rating . '/5 ' . $emoji;
 } else {
-  echo toResultJson($user . ' rated ' . $levelName . ' ' . $matches[2] . '/5');
+  $ratingText = $user . ' rated ' . $levelName . ' ' . $matches[2] . '/5';
 }
+
+echo toResultJson($ratingText . '. Overall rating: ' . $avgAndCount['avg'] . ' (' . $avgAndCount['cnt'] . ' ratings)');
