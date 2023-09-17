@@ -18,7 +18,7 @@ if (empty($arg)) {
   die(toResultJson('Rate levels from 1 to 5, e.g. !rate jungle 4. See ratings with !rating jungle'));
 }
 
-if (!preg_match('/^([a-z0-9_ -]+) ([1-5])$/i', $arg, $matches)) {
+if (!preg_match('/^([a-z0-9_\' -]+) ([1-5])$/i', $arg, $matches)) {
   die(toResultJson('Rate levels from 1 to 5, e.g. !rate thames 4 or !rate rx tech 3'));
 }
 
@@ -60,4 +60,4 @@ if ($oldRating) {
   $ratingText = $user . ' rated ' . $levelName . ' ' . $matches[2] . '/5';
 }
 
-echo toResultJson($ratingText . '. Overall rating: ' . $avgAndCount['avg'] . ' (' . $avgAndCount['cnt'] . ' ratings)');
+echo toResultJson($ratingText . '. Overall rating: ' . round($avgAndCount['avg'], 2) . ' (' . $avgAndCount['cnt'] . ' ratings)');
