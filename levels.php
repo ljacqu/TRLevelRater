@@ -19,5 +19,6 @@ $data_levels = [
   ['Antarctica',          'ant', 'antartica'],
   ['RX-Tech Mines',       'rxt', 'rx', 'rxtech', 'mines', 'rx tech mines', 'rx tech', 'rx-tech'],
   ['Lost City of Tinnos', 'los', 'lost', 'tin', 'tinnos'],
-  ['Meteorite Cavern',    'met', 'meteor', 'meteorite', 'cavern', 'willard']
+  ['Meteorite Cavern',    'met', 'meteor', 'meteorite', 'cavern', 'willard'],
+  ['All Hallows',         'all', 'hallows', 'all hallow']
 ];

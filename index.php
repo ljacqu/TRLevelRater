@@ -19,8 +19,6 @@
 <body>
 <h2>TR3 level ratings</h2>
 
-
-
 <table>
   <tr>
     <th>Level</th>
@@ -56,13 +54,29 @@ function getLevelRatingsByLevelId($db) {
   return $ratingsByLevelId;
 }
 
-function getColorForRating($rating) {
-  if (!$rating) {
-    return '#ccc';
+  function getColorForRating($rating) {
+    if (!$rating) {
+      return '#ccc';
+    }
+
+    $col1 = [255,   0,   0];
+    $col3 = [255, 255,   0];
+    $col5 = [0,   255,   0];
+
+    return $rating <= 3
+      ? interpolateColor($rating, 1, 3, $col1, $col3)
+      : interpolateColor($rating, 3, 5, $col3, $col5);
   }
-  return 'transparent';
-}
-?>
+
+  function interpolateColor($rating, $min, $max, $color1, $color2) {
+    $factor = ($rating - $min) / ($max - $min);
+
+    $r = round($color1[0] + ($color2[0] - $color1[0]) * $factor);
+    $g = round($color1[1] + ($color2[1] - $color1[1]) * $factor);
+    $b = round($color1[2] + ($color2[2] - $color1[2]) * $factor);
+    return "rgb($r $g $b)";
+  }
+  ?>
 </table>
 </body>
 </html>
