@@ -2,7 +2,7 @@
 
 $data_levels = [
   ['Jungle',              'jun', 'jung'],
-  ['Temple Ruins',        'tem', 'temp', 'temple', 'ruins'],
+  ['Temple Ruins',        'rui', 'ruins'],
   ['The River Ganges',    'riv', 'ganges', 'river ganges'],
   ['Caves of Kaliya',     'cav', 'caves', 'kaliya', 'kaliyah'],
   ['Nevada Desert',       'nev', 'nevada', 'desert'],
@@ -11,8 +11,8 @@ $data_levels = [
   ['Coastal Village',     'coa', 'coastal', 'coast', 'costal'],
   ['Crash Site',          'cra', 'crash', 'crashsite'],
   ['Madubu Gorge',        'mad', 'madubu', 'madobo'],
-  ['Temple of Puna',      'tem', 'temp', 'temple', 'puna', 'temple puna'],
-  ['Thames Warf',         'tha', 'thames', 'tames'],
+  ['Temple of Puna',      'pun', 'puna', 'temple puna'],
+  ['Thames Warf',         'tha', 'thames', 'tames', 'wharf'],
   ['Aldwych',             'ald', 'aldywch'],
   ['Lud\'s Gate',         'lud', 'luds gate', 'luds', 'lud\'s', 'ludgate'],
   ['City',                'cit'],

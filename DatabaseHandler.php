@@ -51,7 +51,7 @@ class DatabaseHandler {
       CREATE TABLE IF NOT EXISTS tr_level_rating (
         level varchar(10) NOT NULL,
         user varchar(128) NOT NULL,
-        rating int NOT NULL,
+        rating decimal(2, 1) NOT NULL,
         date datetime NOT NULL,
         UNIQUE KEY tr_rat_level_user (level, user) USING BTREE
       ) ENGINE = InnoDB;');
