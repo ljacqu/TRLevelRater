@@ -21,6 +21,13 @@ class DatabaseHandler {
     return $stmt->fetch();
   }
 
+  function getRatings($user) {
+    $stmt = $this->conn->prepare('SELECT level, rating FROM tr_level_rating WHERE user = :user');
+    $stmt->bindParam('user', $user);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+  }
+
   function getAverage($level) {
     $stmt = $this->conn->prepare('SELECT AVG(rating) as avg, COUNT(rating) as cnt FROM tr_level_rating WHERE level = :level;');
     $stmt->bindParam('level', $level);

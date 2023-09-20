@@ -12,6 +12,13 @@
     }
     td, th {
       border: 1px solid #000;
+      padding: 2px;
+    }
+    td {
+      text-align: right;
+    }
+    .name {
+      text-align: left;
     }
 
   </style>
@@ -19,40 +26,50 @@
 <body>
 <h2>TR3 level ratings</h2>
 
-<table>
-  <tr>
-    <th>Level</th>
-    <th>Average</th>
-    <th>Total ratings</th>
-  </tr>
   <?php
-require 'levels.php';
-require 'Configuration.php';
-require 'DatabaseHandler.php';
+  require 'levels.php';
+  require 'Configuration.php';
+  require 'DatabaseHandler.php';
 
-$db = new DatabaseHandler();
-$levelRatings = getLevelRatingsByLevelId($db);
-
-foreach ($data_levels as $levelTexts) {
-  $levelName = $levelTexts[0];
-  $levelId   = $levelTexts[1];
-
-  $avg = isset($levelRatings[$levelId]) ? round($levelRatings[$levelId]['avg'], 2) : null;
-  $cnt = isset($levelRatings[$levelId]) ? $levelRatings[$levelId]['cnt'] : null;
-
-  echo "<tr><td>$levelName</td>"
-    . "<td style='background-color: " . getColorForRating($avg) . "'>$avg</td>"
-    . "<td>" . ($cnt ?? 0) . "</td></tr>";
-}
-
-function getLevelRatingsByLevelId($db) {
   $db = new DatabaseHandler();
-  $ratingsByLevelId = [];
-  foreach ($db->getAverages() as $row) {
-    $ratingsByLevelId[$row['level']] = $row;
+  $levelRatings = getLevelRatingsByLevelId($db);
+
+  $user = filter_input(INPUT_GET, 'me', FILTER_UNSAFE_RAW, FILTER_REQUIRE_SCALAR);
+  if (!empty($user)) {
+    $userRatings = [];
+    foreach ($db->getRatings(strtolower($user)) as $ratingEntry) {
+      $userRatings[$ratingEntry['level']] = $ratingEntry['rating'];
+    }
   }
-  return $ratingsByLevelId;
-}
+
+  echo '<table><tr><th>Level</th><th>Average</th>' 
+    . (empty($userRatings) ? '' : '<th>' . htmlspecialchars($user) . '</th>')
+    . '<th>Total ratings</th></tr>';
+
+  foreach ($data_levels as $levelTexts) {
+    $levelName = $levelTexts[0];
+    $levelId   = $levelTexts[1];
+
+    $avg = isset($levelRatings[$levelId]) ? round($levelRatings[$levelId]['avg'], 2) : null;
+    $cnt = isset($levelRatings[$levelId]) ? $levelRatings[$levelId]['cnt'] : null;
+
+    echo "<tr><td class='name'>$levelName</td>"
+       . "<td style='background-color: " . getColorForRating($avg) . "'>$avg</td>";
+    if (!empty($userRatings)) {
+      $levelRating = $userRatings[$levelId] ?? null;
+      echo "<td style='background-color: " . getColorForRating($levelRating) . "'>$levelRating</td>";
+    }
+    echo "<td>" . ($cnt ?? 0) . "</td></tr>";
+  }
+
+  function getLevelRatingsByLevelId($db) {
+    $db = new DatabaseHandler();
+    $ratingsByLevelId = [];
+    foreach ($db->getAverages() as $row) {
+      $ratingsByLevelId[$row['level']] = $row;
+    }
+    return $ratingsByLevelId;
+  }
 
   function getColorForRating($rating) {
     if (!$rating) {
