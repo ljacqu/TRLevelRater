@@ -20,7 +20,13 @@
     .name {
       text-align: left;
     }
-
+    a:link, a:visited {
+      color: #33c;
+      text-decoration: none;
+    }
+    a:hover, a:focus, a:active {
+      color: #f60;
+    }
   </style>
 </head>
 <body>
@@ -31,6 +37,9 @@
   require 'Configuration.php';
   require 'DatabaseHandler.php';
 
+  //
+  // Get average rating, and user rating if desired
+  //
   $db = new DatabaseHandler();
   $levelRatings = getLevelRatingsByLevelId($db);
 
@@ -42,25 +51,87 @@
     }
   }
 
-  echo '<table><tr><th>Level</th><th>Average</th>' 
-    . (empty($userRatings) ? '' : '<th>' . htmlspecialchars($user) . '</th>')
-    . '<th>Total ratings</th></tr>';
-
+  //
+  // Create level data entries
+  //
+  $levelData = [];
   foreach ($data_levels as $levelTexts) {
-    $levelName = $levelTexts[0];
-    $levelId   = $levelTexts[1];
+    $levelId = $levelTexts[1];
 
     $avg = isset($levelRatings[$levelId]) ? round($levelRatings[$levelId]['avg'], 2) : null;
     $cnt = isset($levelRatings[$levelId]) ? $levelRatings[$levelId]['cnt'] : null;
+    $userRating = empty($userRatings) ? null : ($userRatings[$levelId] ?? null);
+    $difference = ($userRating && $avg) ? ($userRating - $avg) : null;
 
-    echo "<tr><td class='name'>$levelName</td>"
-       . "<td style='background-color: " . getColorForRating($avg) . "'>$avg</td>";
-    if (!empty($userRatings)) {
-      $levelRating = $userRatings[$levelId] ?? null;
-      echo "<td style='background-color: " . getColorForRating($levelRating) . "'>$levelRating</td>";
-    }
-    echo "<td>" . ($cnt ?? 0) . "</td></tr>";
+    $levelData[] = [
+      'name' => $levelTexts[0],
+      'avg' => $avg,
+      'cnt' => $cnt,
+      'user' => $userRating,
+      'diff' => $difference
+    ];
   }
+
+  //
+  // Sort if needed
+  //
+  $sort = filter_input(INPUT_GET, 'sort', FILTER_UNSAFE_RAW, FILTER_REQUIRE_SCALAR);
+  switch ($sort) {
+    case 'avg': sortArrayByProperty($levelData, 'avg'); break;
+    case 'cnt': sortArrayByProperty($levelData, 'cnt'); break;
+    case 'user': sortArrayByProperty($levelData, 'user'); break;
+    case 'diff': sortArrayByProperty($levelData, 'diff'); break;
+  }
+
+  //
+  // Output table and columns
+  //
+  $columns = [];
+  $columns[] = ['Level', 'level'];
+  if (!empty($userRatings)) {
+    $columns[] = [$user, 'user'];
+    $columns[] = ['Difference', 'diff'];
+  }
+  $columns[] = ['Average', 'avg'];
+  $columns[] = ['Total ratings', 'cnt'];
+
+  $sortedColumn = 'Level';
+  foreach ($columns as $column) {
+    if ($sort === $column[1]) {
+      $sortedColumn = $column[0];
+      break;
+    }
+  }
+
+  echo "<table><tr>";
+  $linkAddition = empty($userRatings) ? '' : '&amp;me=' . urlencode($user);
+  foreach ($columns as $column) {
+    if ($sortedColumn === $column[0]) {
+      echo '<th>' . htmlspecialchars($column[0]) . ' ↓</th>';
+    } else {
+      echo '<th><a href="?sort=' . $column[1] . $linkAddition . '">' . htmlspecialchars($column[0]) . '</a></th>';
+    }
+  }
+  echo '</tr>';
+
+  //
+  // Output rows for levels
+  //
+  foreach ($levelData as $level) {
+    echo "<tr><td class='name'>" . htmlspecialchars($level['name']) . "</td>";
+    if (!empty($userRatings)) {
+      echo '<td style="background-color: ' . getColorForRating($level['user']) . '">' . formatNumber($level['user']) . '</td>';
+      echo '<td style="background-color: ' . getColorForRatingDifference($level['diff']) . '">' . formatNumber($level['diff'], true) . '</td>';
+    }
+    echo '<td style="background-color: ' . getColorForRating($level['avg']) . '">' . formatNumber($level['avg']) . '</td>';
+    echo '<td>' . $level['cnt'] . '</td></tr>';
+  }
+  echo '</table>';
+
+
+  // -------------
+  // Functions
+  // -------------
 
   function getLevelRatingsByLevelId($db) {
     $db = new DatabaseHandler();
@@ -85,6 +156,31 @@
       : interpolateColor($rating, 3, 5, $col3, $col5);
   }
 
+  function getColorForRatingDifference($difference) {
+    if (!$difference) {
+      return '#ccc';
+    }
+    
+    $colM2 = [255,   0,   0];
+    $colM1 = [255, 122, 122];
+    $col0  = [255, 255, 255];
+    $col1  = [122, 255, 122];
+    $col2  = [  0, 255,   0];
+    if ($difference < -2) {
+      return rgbArrayToCssColor($colM2[0], $colM2[1], $colM2[2]);
+    } else if (-2 <= $difference && $difference <= -1) {
+      return interpolateColor($difference, -2, -1, $colM2, $colM1);
+    } else if (-1 <= $difference && $difference <= 0) {
+      return interpolateColor($difference, -1, 0, $colM1, $col0);
+    } else if (0 <= $difference && $difference <= 1) {
+      return interpolateColor($difference, 0, 1, $col0, $col1);
+    } else if (1 <= $difference && $difference <= 2) {
+      return interpolateColor($difference, 1, 2, $col1, $col2);
+    }
+    // $difference > 2
+    return rgbArrayToCssColor($col2[0], $col2[1], $col2[2]);
+  }
+
   function interpolateColor($rating, $min, $max, $color1, $color2) {
     $factor = ($rating - $min) / ($max - $min);
 
@@ -93,8 +189,36 @@
     $b = round($color1[2] + ($color2[2] - $color1[2]) * $factor);
     return "rgb($r $g $b)";
   }
+
+  function rgbArrayToCssColor($r, $g, $b) {
+    return "rgb($r $g $b)";
+  }
+
+  function sortArrayByProperty(&$arr, $propertyName) {
+    usort($arr, function ($entry1, $entry2) use ($propertyName) {
+      $prop1 = $entry1[$propertyName];
+      $prop2 = $entry2[$propertyName];
+
+      // Nulls last
+      if ($prop1 === null && $prop2 !== null) {
+        return 1;
+      } else if ($prop1 !== null && $prop2 === null) {
+        return -1;
+      }
+
+      return ($prop1 == $prop2) ? 0 : ($prop1 > $prop2 ? -1 : 1);
+    });
+  }
+
+  function formatNumber($number, $addPlusIfPositive=false) {
+    if ($number === null) {
+      return $number;
+    }
+    $number = number_format($number, 2);
+    return ($addPlusIfPositive && $number > 0) ? '+' . $number : $number;
+  }
   ?>
-</table>
+
 </body>
 </html>
 
