@@ -3,7 +3,7 @@
 require 'Configuration.php';
 require 'functions.php';
 require 'DatabaseHandler.php';
-require 'levels.php';
+require 'LevelHolder.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -18,21 +18,18 @@ if (empty($arg)) {
   die(toResultJson('Specify a level (e.g. !rating madubu), or run !ratings to see all'));
 }
 
-$levelTexts = findLevel($data_levels, $arg);
-if ($levelTexts === null) {
+$level = LevelHolder::findLevel($arg);
+if ($level === null) {
   die(toResultJson('Unknown level! Use the full name, most relevant word, or the first three letters to identify a level (e.g. "tinnos", "cra", "rx tech")'));
 }
-$levelName = $levelTexts[0];
-$levelId = $levelTexts[1];
 
 $db = new DatabaseHandler();
-
-$avgAndCount = $db->getAverage($levelId);
+$avgAndCount = $db->getAverage($level->getId());
 
 if ((int) $avgAndCount['cnt'] === 0) {
-  echo toResultJson($levelName . ' does not have any ratings yet. Rate it from 1 to 5 with !rate');
+  echo toResultJson($level->name . ' does not have any ratings yet. Rate it from 1 to 5 with !rate');
 } else if ((int) $avgAndCount['cnt'] === 1) {
-  echo toResultJson($levelName . ' has been rated once, namely with ' . round($avgAndCount['avg'], 0) . '/5');
+  echo toResultJson($level->name . ' has been rated once, namely with ' . round($avgAndCount['avg'], 0) . '/5');
 } else {
-  echo toResultJson($levelName . ' has a rating of ' . round($avgAndCount['avg'], 2) . '/5 (total ' . $avgAndCount['cnt'] . ' ratings)');
+  echo toResultJson($level->name . ' has a rating of ' . round($avgAndCount['avg'], 2) . '/5 (total ' . $avgAndCount['cnt'] . ' ratings)');
 }

@@ -30,12 +30,12 @@
   </style>
 </head>
 <body>
-<h2>TR3 level ratings</h2>
+<h1>Tomb Raider level ratings</h1>
 
   <?php
-  require 'levels.php';
   require 'Configuration.php';
   require 'DatabaseHandler.php';
+  require 'LevelHolder.php';
 
   //
   // Get average rating, and user rating if desired
@@ -54,17 +54,19 @@
   //
   // Create level data entries
   //
-  $levelData = [];
-  foreach ($data_levels as $levelTexts) {
-    $levelId = $levelTexts[1];
+  $levelData = []; // TODO: Rename variable
+  foreach (LevelHolder::getLevels() as $level) {
+    $levelId = $level->aliases[0];
 
     $avg = isset($levelRatings[$levelId]) ? round($levelRatings[$levelId]['avg'], 2) : null;
     $cnt = isset($levelRatings[$levelId]) ? $levelRatings[$levelId]['cnt'] : null;
     $userRating = empty($userRatings) ? null : ($userRatings[$levelId] ?? null);
     $difference = ($userRating && $avg) ? ($userRating - $avg) : null;
 
-    $levelData[] = [
-      'name' => $levelTexts[0],
+    $levelData[$level->game] = $levelData[$level->game] ?? [];
+
+    $levelData[$level->game][] = [
+      'name' => $level->name,
       'avg' => $avg,
       'cnt' => $cnt,
       'user' => $userRating,
@@ -76,11 +78,13 @@
   // Sort if needed
   //
   $sort = filter_input(INPUT_GET, 'sort', FILTER_UNSAFE_RAW, FILTER_REQUIRE_SCALAR);
-  switch ($sort) {
-    case 'avg': sortArrayByProperty($levelData, 'avg'); break;
-    case 'cnt': sortArrayByProperty($levelData, 'cnt'); break;
-    case 'user': sortArrayByProperty($levelData, 'user'); break;
-    case 'diff': sortArrayByProperty($levelData, 'diff'); break;
+  foreach ($levelData as &$gameRatings) {
+    switch ($sort) {
+      case 'avg': sortArrayByProperty($gameRatings, 'avg'); break;
+      case 'cnt': sortArrayByProperty($gameRatings, 'cnt'); break;
+      case 'user': sortArrayByProperty($gameRatings, 'user'); break;
+      case 'diff': sortArrayByProperty($gameRatings, 'diff'); break;
+    }
   }
 
   //
@@ -103,31 +107,33 @@
     }
   }
 
-  echo "<table><tr>";
-  $linkAddition = empty($userRatings) ? '' : '&amp;me=' . urlencode($user);
-  foreach ($columns as $column) {
-    if ($sortedColumn === $column[0]) {
-      echo '<th>' . htmlspecialchars($column[0]) . ' ↓</th>';
-    } else {
-      echo '<th><a href="?sort=' . $column[1] . $linkAddition . '">' . htmlspecialchars($column[0]) . '</a></th>';
+  foreach ($levelData as $game => $levels) {
+    echo '<h2>' . str_replace('TR', 'Tomb Raider ', $game) . '</h2>';
+    echo "<table><tr>";
+    $linkAddition = empty($userRatings) ? '' : '&amp;me=' . urlencode($user);
+    foreach ($columns as $column) {
+      if ($sortedColumn === $column[0]) {
+        echo '<th>' . htmlspecialchars($column[0]) . ' ↓</th>';
+      } else {
+        echo '<th><a href="?sort=' . $column[1] . $linkAddition . '">' . htmlspecialchars($column[0]) . '</a></th>';
+      }
     }
-  }
-  echo '</tr>';
+    echo '</tr>';
 
-  //
-  // Output rows for levels
-  //
-  foreach ($levelData as $level) {
-    echo "<tr><td class='name'>" . htmlspecialchars($level['name']) . "</td>";
-    if (!empty($userRatings)) {
-      echo '<td style="background-color: ' . getColorForRating($level['user']) . '">' . formatNumber($level['user']) . '</td>';
-      echo '<td style="background-color: ' . getColorForRatingDifference($level['diff']) . '">' . formatNumber($level['diff'], true) . '</td>';
+    //
+    // Output rows for levels
+    //
+    foreach ($levels as $level) {
+      echo "<tr><td class='name'>" . htmlspecialchars($level['name']) . "</td>";
+      if (!empty($userRatings)) {
+        echo '<td style="background-color: ' . getColorForRating($level['user']) . '">' . formatNumber($level['user']) . '</td>';
+        echo '<td style="background-color: ' . getColorForRatingDifference($level['diff']) . '">' . formatNumber($level['diff'], true) . '</td>';
+      }
+      echo '<td style="background-color: ' . getColorForRating($level['avg']) . '">' . formatNumber($level['avg']) . '</td>';
+      echo '<td>' . $level['cnt'] . '</td></tr>';
     }
-    echo '<td style="background-color: ' . getColorForRating($level['avg']) . '">' . formatNumber($level['avg']) . '</td>';
-    echo '<td>' . $level['cnt'] . '</td></tr>';
+    echo '</table>';
   }
-  echo '</table>';
-
 
   // -------------
   // Functions
@@ -160,7 +166,7 @@
     if (!$difference) {
       return '#ccc';
     }
-    
+
     $colM2 = [255,   0,   0];
     $colM1 = [255, 122, 122];
     $col0  = [255, 255, 255];

@@ -3,7 +3,7 @@
 require 'Configuration.php';
 require 'functions.php';
 require 'DatabaseHandler.php';
-require 'levels.php';
+require 'LevelHolder.php';
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -27,16 +27,17 @@ if (empty($user)) {
   die(toResultJson('Error! Failed to get user'));
 }
 
-$levelTexts = findLevel($data_levels, trim($matches[1]));
-if ($levelTexts === null) {
+$level = LevelHolder::findLevel(trim($matches[1]));
+if ($level === null) {
   if (strtolower($matches[1]) === 'temple' || strtolower($matches[1]) === 'tem') {
-    die(toResultJson('"Temple" is ambiguous. Please use "ruins" or "puna"'));
+    die(toResultJson('"Temple" is ambiguous. Please use "xian", "ruins" or "puna"'));
+  } else if (strtolower($matches[1]) === 'mines') {
+    die(toResultJson('"Mines" is ambiguous. Please use "natla" or "rx tech"'));
   }
   die(toResultJson('Unknown level! Use the full name, most relevant word, or the first three letters to identify a level (e.g. "tinnos", "cra", "rx tech")'));
 }
-$levelName = $levelTexts[0];
-$levelId   = $levelTexts[1];
 
+$levelId = $level->aliases[0];
 $db = new DatabaseHandler();
 
 $existingRating = $db->getRating($user, $levelId);
@@ -48,7 +49,7 @@ if ($rating > 5 || $rating < 1) {
   die(toResultJson('Please use a rating from 1 to 5'));
 }
 if ($oldRating === $rating) {
-  die(toResultJson('@' . $user . ', your rating for ' . $levelName . ' is already ' . $rating . '/5 :D'));
+  die(toResultJson('@' . $user . ', your rating for ' . $level->name . ' is already ' . $rating . '/5 :D'));
 }
 
 $db->addOrUpdateRating($user, $levelId, $rating);
@@ -61,9 +62,9 @@ if ($oldRating) {
     : ['⬆️', '💹', '🚀'];
 
   $emoji = $emojis[rand(0, count($emojis) - 1)];
-  $ratingText = $user . ' changed their rating of ' . $levelName . ' to ' . $rating . '/5 ' . $emoji;
+  $ratingText = $user . ' changed their rating of ' . $level->name . ' to ' . $rating . '/5 ' . $emoji;
 } else {
-  $ratingText = $user . ' rated ' . $levelName . ' ' . $rating . '/5';
+  $ratingText = $user . ' rated ' . $level->name . ' ' . $rating . '/5';
 }
 
 echo toResultJson($ratingText . '. Overall rating: ' . round($avgAndCount['avg'], 2) . ' (' . $avgAndCount['cnt'] . ' ratings)');

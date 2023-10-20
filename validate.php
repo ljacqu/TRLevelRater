@@ -1,15 +1,20 @@
 <?php
 
-require 'levels.php';
+require 'LevelHolder.php';
 
 $seenNames = [];
-foreach ($data_levels as $aliases) {
-  foreach ($aliases as $alias) {
-    if (array_search($alias, $seenNames, true) !== false) {
+foreach (LevelHolder::getLevels() as $level) {
+  if (in_array(strtolower($level->name), $seenNames)) {
+    die('Alias "' . htmlspecialchars($alias) . '" has already been used!');
+  }
+
+  foreach ($level->aliases as $alias) {
+    if (in_array($alias, $seenNames)) {
       die('Alias "' . htmlspecialchars($alias) .'" has already been used!');
     }
-    array_push($seenNames, $aliases);
+    $seenNames[] = $level->aliases;
   }
+  $seenNames[] = strtolower($level->name);
 }
 
 echo 'Validated ' . count($seenNames) . ' level identifiers';
