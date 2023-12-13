@@ -7,6 +7,9 @@ final class LevelHolder {
   private function __construct() {
   }
 
+  /**
+   * @return Level[]
+   */
   static function getLevels(): array {
     $tr1Levels = [
       ['Caves', 'caves1'],

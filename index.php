@@ -2,32 +2,7 @@
 <html lang="en">
 <head>
   <title>Tomb Raider Level Ratings</title>
-  <style>
-    body, table {
-      font-family: Arial, sans-serif;
-      font-size: 10pt;
-    }
-    table {
-      border-collapse: collapse;
-    }
-    td, th {
-      border: 1px solid #000;
-      padding: 2px;
-    }
-    td {
-      text-align: right;
-    }
-    .name {
-      text-align: left;
-    }
-    a:link, a:visited {
-      color: #33c;
-      text-decoration: none;
-    }
-    a:hover, a:focus, a:active {
-      color: #f60;
-    }
-  </style>
+  <link rel="stylesheet" href="./assets/style.css" />
 </head>
 <body>
 <h1>Tomb Raider level ratings</h1>
