@@ -27,14 +27,17 @@ if (empty($user)) {
   die(toResultJson('Error! Failed to get user'));
 }
 
-$level = LevelHolder::findLevel(trim($matches[1]));
+$userLevelText = strtolower(trim($matches[1]));
+$level = LevelHolder::findLevel($userLevelText);
 if ($level === null) {
-  if (strtolower($matches[1]) === 'temple' || strtolower($matches[1]) === 'tem') {
+  if ($userLevelText === 'temple' || $userLevelText === 'tem') {
     die(toResultJson('"Temple" is ambiguous. Please use "xian", "ruins" or "puna"'));
-  } else if (strtolower($matches[1]) === 'mines') {
+  } else if ($userLevelText === 'mines') {
     die(toResultJson('"Mines" is ambiguous. Please use "natla" or "rx tech"'));
+  } else if ($userLevelText === 'great') {
+    die(toResultJson('"Great" is ambiguous. Please use "pyramid" or "wall"'));
   }
-  die(toResultJson('Unknown level! Use the full name, most relevant word, or the first three letters to identify a level (e.g. "tinnos", "cra", "rx tech")'));
+  die(toResultJson('Unknown level! Use the full name or the most relevant word (e.g. "midas", "great wall", "rx tech")'));
 }
 
 $levelId = $level->aliases[0];

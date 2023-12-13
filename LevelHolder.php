@@ -44,7 +44,7 @@ final class LevelHolder {
       ['Temple of Xian', 'xian2', 'xian', 'temple xian'],
       ['Floating Islands', 'fltisl2', 'floating', 'islands', 'flo'],
       ['The Dragon\'s Lair', 'draglair2', 'dragon', 'lair', 'dragon lair', 'dragons lair', 'the dragon lair', 'the dragons lair'],
-      ['Home Sweet Home', 'home2', 'hsh', 'sweet', 'sweet home']
+      ['Home Sweet Home', 'home2', 'hsh', 'home', 'sweet', 'sweet home']
     ];
 
     $tr3Levels = [
@@ -59,7 +59,7 @@ final class LevelHolder {
       ['Crash Site', 'cra', 'crash', 'crashsite'],
       ['Madubu Gorge', 'mad', 'madubu', 'madobo'],
       ['Temple of Puna', 'pun', 'puna', 'temple puna'],
-      ['Thames Warf', 'tha', 'thames', 'tames', 'wharf'],
+      ['Thames Wharf', 'tha', 'thames', 'tames', 'wharf'],
       ['Aldwych', 'ald', 'aldywch'],
       ['Lud\'s Gate', 'lud', 'luds gate', 'luds', 'lud\'s', 'ludgate'],
       ['City', 'cit'],
@@ -86,8 +86,7 @@ final class LevelHolder {
     return $levels;
   }
 
-  static function findLevel(string $name): ?Level {
-    $nameLower = strtolower($name);
+  static function findLevel(string $nameLower): ?Level {
     foreach (self::getLevels() as $level) {
       if (strtolower($level->name) === $nameLower) {
         return $level;
