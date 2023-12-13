@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>TR3 Level Ratings</title>
+  <title>Tomb Raider Level Ratings</title>
   <style>
     body, table {
-      font-family: Arial;
+      font-family: Arial, sans-serif;
       font-size: 10pt;
     }
     table {
