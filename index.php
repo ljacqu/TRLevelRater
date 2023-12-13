@@ -1,16 +1,13 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <title>Tomb Raider Level Ratings</title>
-  <link rel="stylesheet" href="./assets/style.css" />
-</head>
-<body>
-<h1>Tomb Raider level ratings</h1>
-
   <?php
+  session_start();
+
   require 'Configuration.php';
   require 'DatabaseHandler.php';
   require 'LevelHolder.php';
+  require './assets/Page.php';
+
+  Page::outputStart('Tomb Raider Level Ratings');
+  echo '<h1>Tomb Raider level ratings</h1>';
 
   //
   // Get average rating, and user rating if desired
@@ -82,15 +79,17 @@
     }
   }
 
+  echo '<table>';
   foreach ($levelData as $game => $levels) {
-    echo '<h2>' . str_replace('TR', 'Tomb Raider ', $game) . '</h2>';
-    echo "<table><tr>";
+    echo '<tr><td colspan="' . count($columns) . '" class="gametitle"><h2>' . str_replace('TR', 'Tomb Raider ', $game)
+         . '</h2></td></tr><tr class="header">';
+
     $linkAddition = empty($userRatings) ? '' : '&amp;me=' . urlencode($user);
     foreach ($columns as $column) {
       if ($sortedColumn === $column[0]) {
-        echo '<th>' . htmlspecialchars($column[0]) . ' ↓</th>';
+        echo '<td>' . htmlspecialchars($column[0]) . ' ↓</td>';
       } else {
-        echo '<th><a href="?sort=' . $column[1] . $linkAddition . '">' . htmlspecialchars($column[0]) . '</a></th>';
+        echo '<td><a href="?sort=' . $column[1] . $linkAddition . '">' . htmlspecialchars($column[0]) . '</a></td>';
       }
     }
     echo '</tr>';
@@ -107,15 +106,16 @@
       echo '<td style="background-color: ' . getColorForRating($level['avg']) . '">' . formatNumber($level['avg']) . '</td>';
       echo '<td>' . $level['cnt'] . '</td></tr>';
     }
-    echo '</table>';
   }
+  echo '</table>';
+
+  Page::outputEnd();
 
   // -------------
   // Functions
   // -------------
 
-  function getLevelRatingsByLevelId($db) {
-    $db = new DatabaseHandler();
+  function getLevelRatingsByLevelId(DatabaseHandler $db): array {
     $ratingsByLevelId = [];
     foreach ($db->getAverages() as $row) {
       $ratingsByLevelId[$row['level']] = $row;
@@ -123,7 +123,7 @@
     return $ratingsByLevelId;
   }
 
-  function getColorForRating($rating) {
+  function getColorForRating(?float $rating): string {
     if (!$rating) {
       return '#ccc';
     }
@@ -137,7 +137,7 @@
       : interpolateColor($rating, 3, 5, $col3, $col5);
   }
 
-  function getColorForRatingDifference($difference) {
+  function getColorForRatingDifference(?float $difference): string {
     if (!$difference) {
       return '#ccc';
     }
@@ -162,7 +162,7 @@
     return rgbArrayToCssColor($col2[0], $col2[1], $col2[2]);
   }
 
-  function interpolateColor($rating, $min, $max, $color1, $color2) {
+  function interpolateColor(?float $rating, float $min, float $max, array $color1, array $color2): string {
     $factor = ($rating - $min) / ($max - $min);
 
     $r = round($color1[0] + ($color2[0] - $color1[0]) * $factor);
@@ -171,11 +171,11 @@
     return "rgb($r $g $b)";
   }
 
-  function rgbArrayToCssColor($r, $g, $b) {
+  function rgbArrayToCssColor(int $r, int $g, int $b): string {
     return "rgb($r $g $b)";
   }
 
-  function sortArrayByProperty(&$arr, $propertyName) {
+  function sortArrayByProperty(array &$arr, string $propertyName): void {
     usort($arr, function ($entry1, $entry2) use ($propertyName) {
       $prop1 = $entry1[$propertyName];
       $prop2 = $entry2[$propertyName];
@@ -191,15 +191,12 @@
     });
   }
 
-  function formatNumber($number, $addPlusIfPositive=false) {
+  function formatNumber(?float $number, bool $addPlusIfPositive=false): ?string {
     if ($number === null) {
-      return $number;
+      return null;
     }
     $number = number_format($number, 2);
     return ($addPlusIfPositive && $number > 0) ? '+' . $number : $number;
   }
   ?>
-
-</body>
-</html>
 

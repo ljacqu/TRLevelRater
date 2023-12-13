@@ -12,6 +12,11 @@ td, th {
 td {
     text-align: right;
 }
+td.gametitle {
+    border: 0;
+    text-align: left;
+    padding-bottom: 0;
+}
 .name {
     text-align: left;
 }
@@ -21,4 +26,24 @@ a:link, a:visited {
 }
 a:hover, a:focus, a:active {
     color: #f60;
+}
+#twitchpic {
+    width: 70px;
+    float: right;
+    border-radius: 50%;
+}
+input {
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 0.2em;
+}
+.ratingerror {
+    border: 1px solid red;
+}
+.ratingsaved {
+    border: 1px solid #060;
+}
+tr.header td {
+    font-weight: bold;
+    text-align: left;
 }

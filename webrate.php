@@ -11,25 +11,33 @@ require 'Configuration.php';
 require 'Level.php';
 require 'LevelHolder.php';
 require 'DatabaseHandler.php';
+require './assets/Page.php';
 
 $db = new DatabaseHandler();
 
-echo '<link rel="stylesheet" href="./assets/style.css" />
-<img src="' . htmlspecialchars($_SESSION['twitch_image']) . '" style="width: 70px; float: right; border-radius: 50%" title="Connected as ' . $_SESSION['twitch_name'] . '" />
-<h1>TR ratings</h1>
+Page::outputStart('Tomb Raider ratings');
+echo '<h1>TR ratings</h1>
   <p>You are currently connected as <b>' . htmlspecialchars($_SESSION['twitch_name']) . '</b> and can add or edit
   ratings for TR levels below.</p>';
 
 $userRatings = getUserRatingsByLevel($_SESSION['twitch_name'], $db);
 $levelsByGame = getLevelsByGame($userRatings);
+echo '<table>';
 foreach ($levelsByGame as $game => $levels) {
-  echo '<h1>' . str_replace('TR', 'Tomb Raider ', $game) . '</h1>';
-  echo '<table><tr><th>Level</th><th>Rating</th></tr>';
+  echo '<tr><td colspan="2" class="gametitle"><h2>' . str_replace('TR', 'Tomb Raider ', $game) . '</h2></td></tr>';
+  echo '<tr class="header"><td>Level</td><td>Rating</td></tr>';
   foreach ($levels as $level) {
-    echo '<tr><td>' . htmlspecialchars($level['name']) . '</td><td>' . $level['rating'] . '</td></tr>';
+    $alias = $level['alias'];
+    echo "<tr><td class='name'><label for='$alias'>" . htmlspecialchars($level['name']) . "</label></td>
+              <td class='editablerating'>
+                <input id='$alias' type='text' maxlength='3' value='{$level['rating']}' />
+              </td></tr>";
   }
-  echo '</table>';
 }
+echo '</table>';
+echo '<script src="./assets/editrating.js"></script><script>initRatingCells();</script>';
+
+Page::outputEnd();
 
 function getUserRatingsByLevel(string $user, DatabaseHandler $db): array {
   $ratingsByLevel = [];
