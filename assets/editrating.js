@@ -6,10 +6,9 @@ function handleRating(inputElem) {
     } else if (/^([1-4]\.\d)|(5\.0)$/.test(inputValue)) {
         rating = inputValue;
     } else {
-        inputElem.classList.add('ratingerror');
+        inputElem.className = 'ratingerror';
         return;
     }
-    inputElem.classList.remove('ratingerror');
 
     inputElem.disabled = true;
 
@@ -27,14 +26,14 @@ function handleRating(inputElem) {
             if (result === 'Success') {
                 deleteElementIfExists(inputElem.parentElement, 'p');
                 inputElem.value = rating;
-                inputElem.classList.add('ratingsaved');
+                inputElem.className = 'ratingsaved';
             } else {
                 getOrCreateElement(inputElem.parentElement, 'p').innerText = result;
-                inputElem.classList.add('ratingerror');
+                inputElem.className = 'ratingerror';
             }
         })
         .catch(e => {
-            inputElem.classList.add('ratingerror');
+            inputElem.className = 'ratingerror';
             getOrCreateElement(inputElem.parentElement, 'p').innerText = e.message;
         })
         .finally(() => {

@@ -1,8 +1,10 @@
 <?php
+session_start();
 
 require 'Configuration.php';
+require './assets/Page.php';
 
-session_start();
+Page::outputStart('Twitch account');
 
 if (isset($_SESSION['twitch_name'])) {
   echo '<h1>You are already connected as ' . htmlspecialchars($_SESSION['twitch_name']) . '</h1>';
@@ -16,7 +18,7 @@ if (isset($_SESSION['twitch_name'])) {
   outputConnectLinkAndInfo();
 }
 
-echo '</body></html>';
+Page::outputEnd();
 
 // -------------
 // FUNCTIONS
@@ -80,8 +82,10 @@ function handleSuccessfulTokenCurlResponse(string $response): string {
   $_SESSION['twitch_name']  = $twitchUserInfo['name'];
   $_SESSION['twitch_image'] = $twitchUserInfo['image'];
 
-  return '<p><b style="color: green">&check;</b> Success! You can now submit ratings as <b>'
+  return '<script>window.location.href="webrate.php";</script>
+      <p><b style="color: green">&check;</b> Success! You can now submit ratings as <b>'
     . htmlspecialchars($twitchUserInfo['name']) . '</b>. Go to <a href="rating.php">Ratings overview</a>.</p>';
+
 }
 
 // https://dev.twitch.tv/docs/api/reference/#get-users
@@ -115,17 +119,20 @@ function getTwitchUserInfo(string $twitchToken): array {
 }
 
 function outputConnectLinkAndInfo(): void {
-  echo '<h1>Connect to Twitch</h1>
-  <p>You can connect your Twitch account to this page to provide ratings on this web page.
-  The connection only serves as purpose of identifying you—nothing will be done with your Twitch account.</p>';
+  echo '<h1>Connect with Twitch</h1>
+  <p>
+    Press the button below to log in with Twitch: this will allow you to edit all your ratings on this
+    page instead of using commands.</p><p> Nothing from your Twitch account is read besides your username to
+    be able to identify you.
+  </p>';
 
   $redirectUrl = obtainSelfLink();
   $url = "https://id.twitch.tv/oauth2/authorize?response_type=code&client_id=" . Configuration::TWITCH_CLIENT_ID
     . "&redirect_uri=" . urlencode($redirectUrl)
     . "&scope=";
-  echo '<p><a href="' . htmlspecialchars($url) . '">Click here to connect with Twitch</a></p>';
 
-  echo '<p>Alternatively, you can provide ratings via the <code>!rate</code> command in chat</p>';
+  echo "<button onclick='window.location.href=\"$url\";'>Connect with Twitch</button>";
+
 }
 
 function obtainSelfLink(): string {

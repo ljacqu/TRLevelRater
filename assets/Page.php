@@ -5,7 +5,7 @@ final class Page {
   private function __construct() {
   }
 
-  static function outputStart($title): void {
+  static function outputStart(string $title): void {
     echo <<<HTML
 <!DOCTYPE html>
 <html lang="en">
@@ -22,7 +22,14 @@ HTML;
     }
   }
 
-  static function outputEnd(): void {
+  static function outputEnd(bool $includeDisconnectLink=true): void {
+    if (isset($_SESSION['twitch_name'])) {
+      echo "<div class='footer'>You are connected as <b>" . htmlspecialchars($_SESSION['twitch_name']) . "</b>";
+      if ($includeDisconnectLink) {
+        echo " &middot; <a href='twitchdisconnect.php'>Disconnect</a>";
+      }
+      echo '</div>';
+    }
     echo '</body></html>';
   }
 }

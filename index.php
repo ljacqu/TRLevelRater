@@ -9,6 +9,8 @@
   Page::outputStart('Tomb Raider Level Ratings');
   echo '<h1>Tomb Raider level ratings</h1>';
 
+  outputTwitchInfo();
+
   //
   // Get average rating, and user rating if desired
   //
@@ -198,5 +200,18 @@
     $number = number_format($number, 2);
     return ($addPlusIfPositive && $number > 0) ? '+' . $number : $number;
   }
-  ?>
 
+  function outputTwitchInfo(): void {
+    if (!isset($_SESSION['twitch_name'])) {
+      echo <<<HTML
+<div class="twitchconnect">
+  You can log in with Twitch to submit your ratings! <a href="twitchconnect.php">Connect with Twitch</a>
+</div>
+HTML;
+    } else {
+      $nameEscaped = htmlspecialchars($_SESSION['twitch_name']);
+      echo <<<HTML
+<div class="twitchconnect">You are logged in as <b>$nameEscaped</b>. <a href="webrate.php">Manage your ratings</a></div>
+HTML;
+    }
+  }
