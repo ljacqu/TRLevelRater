@@ -9,7 +9,8 @@
   Page::outputStart('Tomb Raider Level Ratings');
   echo '<h1>Tomb Raider level ratings</h1>';
 
-  outputTwitchInfo();
+  $user = filter_input(INPUT_GET, 'me', FILTER_UNSAFE_RAW, FILTER_REQUIRE_SCALAR);
+  outputTwitchInfo($user);
 
   //
   // Get average rating, and user rating if desired
@@ -17,9 +18,8 @@
   $db = new DatabaseHandler();
   $levelRatings = getLevelRatingsByLevelId($db);
 
-  $user = filter_input(INPUT_GET, 'me', FILTER_UNSAFE_RAW, FILTER_REQUIRE_SCALAR);
+  $userRatings = [];
   if (!empty($user)) {
-    $userRatings = [];
     foreach ($db->getRatings(strtolower($user)) as $ratingEntry) {
       $userRatings[$ratingEntry['level']] = $ratingEntry['rating'];
     }
@@ -28,18 +28,18 @@
   //
   // Create level data entries
   //
-  $levelData = []; // TODO: Rename variable
+  $levelsByGame = [];
   foreach (LevelHolder::getLevels() as $level) {
     $levelId = $level->aliases[0];
 
     $avg = isset($levelRatings[$levelId]) ? round($levelRatings[$levelId]['avg'], 2) : null;
     $cnt = isset($levelRatings[$levelId]) ? $levelRatings[$levelId]['cnt'] : null;
-    $userRating = empty($userRatings) ? null : ($userRatings[$levelId] ?? null);
+    $userRating = $userRatings[$levelId] ?? null;
     $difference = ($userRating && $avg) ? ($userRating - $avg) : null;
 
-    $levelData[$level->game] = $levelData[$level->game] ?? [];
+    $levelsByGame[$level->game] = $levelsByGame[$level->game] ?? [];
 
-    $levelData[$level->game][] = [
+    $levelsByGame[$level->game][] = [
       'name' => $level->name,
       'avg' => $avg,
       'cnt' => $cnt,
@@ -52,7 +52,7 @@
   // Sort if needed
   //
   $sort = filter_input(INPUT_GET, 'sort', FILTER_UNSAFE_RAW, FILTER_REQUIRE_SCALAR);
-  foreach ($levelData as &$gameRatings) {
+  foreach ($levelsByGame as &$gameRatings) {
     switch ($sort) {
       case 'avg': sortArrayByProperty($gameRatings, 'avg'); break;
       case 'cnt': sortArrayByProperty($gameRatings, 'cnt'); break;
@@ -82,16 +82,17 @@
   }
 
   echo '<table>';
-  foreach ($levelData as $game => $levels) {
-    echo '<tr><td colspan="' . count($columns) . '" class="gametitle"><h2>' . str_replace('TR', 'Tomb Raider ', $game)
-         . '</h2></td></tr><tr class="header">';
+  foreach ($levelsByGame as $game => $levels) {
+    echo '<tr><td colspan="' . count($columns) . '" class="gametitle"><h2 id="' . $game . '">'
+      . str_replace('TR', 'Tomb Raider ', $game)
+      . '</h2></td></tr><tr class="header">';
 
     $linkAddition = empty($userRatings) ? '' : '&amp;me=' . urlencode($user);
     foreach ($columns as $column) {
       if ($sortedColumn === $column[0]) {
         echo '<td>' . htmlspecialchars($column[0]) . ' ↓</td>';
       } else {
-        echo '<td><a href="?sort=' . $column[1] . $linkAddition . '">' . htmlspecialchars($column[0]) . '</a></td>';
+        echo '<td><a href="?sort=' . $column[1] . $linkAddition . '#' . $game . '">' . htmlspecialchars($column[0]) . '</a></td>';
       }
     }
     echo '</tr>';
@@ -201,18 +202,21 @@
     return ($addPlusIfPositive && $number > 0) ? '+' . $number : $number;
   }
 
-  function outputTwitchInfo(): void {
-    if (!isset($_SESSION['twitch_name'])) {
+  function outputTwitchInfo(?string $user): void {
+    if (isset($_SESSION['twitch_name'])) {
+      $nameEscaped = htmlspecialchars($_SESSION['twitch_name']);
+      echo "<div class='twitchconnect'>You are logged in as <b>$nameEscaped</b>. "
+        . "<a href='webrate.php'>Edit your ratings</a></div>";
+    } else {
       echo <<<HTML
 <div class="twitchconnect">
   You can log in with Twitch to submit your ratings! <a href="twitchconnect.php">Connect with Twitch</a>
 </div>
 HTML;
-    } else {
-      $nameEscaped = htmlspecialchars($_SESSION['twitch_name']);
-      echo <<<HTML
-<div class="twitchconnect">You are logged in as <b>$nameEscaped</b>. <a href="webrate.php">Manage your ratings</a></div>
-HTML;
     }
-    echo '<p>Click on any table header to sort by it.</p>';
+    echo '<p>Click on any table header to sort by it.';
+    if (isset($_SESSION['twitch_name']) && $_SESSION['twitch_name'] !== $user) {
+      echo " <a href='index.php?me=" . urlencode($_SESSION['twitch_name']) . "'>Show your ratings</a>";
+    }
+    echo '</p>';
   }
