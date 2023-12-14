@@ -23,7 +23,7 @@ if (!isset($_POST['logout'])) {
     You can also remove the connection from your
        <a href="https://www.twitch.tv/settings/connections" target="_blank">Twitch profile</a> if you want.</p>
  <form method="post">
-   <input type="submit" value="Disconnect account" />
+   <input type="submit" value="Disconnect account" class="action disconnect" />
    <input type="hidden" name="logout" value="1" />
   </form>
   <p><a href="index.php">Back to the ratings</a></p>
@@ -37,8 +37,8 @@ HTML;
   echo <<<HTML
 <h1>Account disconnected</h1>
 <p>The association to your Twitch account has been removed. Thanks for providing some TR ratings!
-You can also remove the connection from your
-       <a href="https://www.twitch.tv/settings/connections" target="_blank">Twitch profile</a> if you want.</p>
+You can also remove the "TRLevelRater" connection from your
+  <a href="https://www.twitch.tv/settings/connections" target="_blank">Twitch profile</a>.</p>
 <p><a href="index.php">Back to the ratings</a></p>
 HTML;
 }

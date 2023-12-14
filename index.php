@@ -214,4 +214,5 @@ HTML;
 <div class="twitchconnect">You are logged in as <b>$nameEscaped</b>. <a href="webrate.php">Manage your ratings</a></div>
 HTML;
     }
+    echo '<p>Click on any table header to sort by it.</p>';
   }

@@ -121,9 +121,11 @@ function getTwitchUserInfo(string $twitchToken): array {
 function outputConnectLinkAndInfo(): void {
   echo '<h1>Connect with Twitch</h1>
   <p>
-    Press the button below to log in with Twitch: this will allow you to edit all your ratings on this
-    page instead of using commands.</p><p> Nothing from your Twitch account is read besides your username to
-    be able to identify you.
+    Press the button below to log in with Twitch: this will allow you to add and edit ratings on this
+    page instead of using in-stream commands.</p>
+  <p>
+    Your Twitch account is needed to associate you with a username—nothing is read from your Twitch account
+    besides username and profile pic (to show on the page).
   </p>';
 
   $redirectUrl = obtainSelfLink();
@@ -131,7 +133,8 @@ function outputConnectLinkAndInfo(): void {
     . "&redirect_uri=" . urlencode($redirectUrl)
     . "&scope=";
 
-  echo "<button onclick='window.location.href=\"$url\";'>Connect with Twitch</button>";
+  echo "<button onclick='window.location.href=\"$url\";' class='action connect'>Connect with Twitch</button>
+  <p><a href='index.php'>Back to ratings overview</a></p>";
 
 }
 

@@ -37,11 +37,36 @@ input {
     border-radius: 4px;
     padding: 0.2em;
 }
+.action {
+    padding: 0.5em;
+    margin: 1em;
+    border: 1px outset #000;
+    font-weight: bold;
+    border-radius: 5px;
+}
+.connect {
+    background-color: #6d6;
+    color: #000;
+}
+.connect:hover {
+    border: 1px solid #060;
+    background-color: #3f3;
+}
+.disconnect {
+    background-color: #900;
+    color: #fff;
+}
+.disconnect:hover {
+    background-color: #d00;
+    border: 1px inset #600;
+}
 .ratingerror {
     border: 1px solid red;
+    background-color: #fee;
 }
 .ratingsaved {
     border: 1px solid #060;
+    background-color: #f8fff8;
 }
 tr.header td {
     font-weight: bold;
