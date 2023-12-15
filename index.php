@@ -10,7 +10,8 @@
   echo '<h1>Tomb Raider level ratings</h1>';
 
   $user = filter_input(INPUT_GET, 'me', FILTER_UNSAFE_RAW, FILTER_REQUIRE_SCALAR);
-  outputTwitchInfo($user);
+  $sort = filter_input(INPUT_GET, 'sort', FILTER_UNSAFE_RAW, FILTER_REQUIRE_SCALAR);
+  outputTwitchInfo($user, $sort);
 
   //
   // Get average rating, and user rating if desired
@@ -28,36 +29,20 @@
   //
   // Create level data entries
   //
-  $levelsByGame = [];
-  foreach (LevelHolder::getLevels() as $level) {
-    $levelId = $level->aliases[0];
-
-    $avg = isset($levelRatings[$levelId]) ? round($levelRatings[$levelId]['avg'], 2) : null;
-    $cnt = isset($levelRatings[$levelId]) ? $levelRatings[$levelId]['cnt'] : null;
-    $userRating = $userRatings[$levelId] ?? null;
-    $difference = ($userRating && $avg) ? ($userRating - $avg) : null;
-
-    $levelsByGame[$level->game] = $levelsByGame[$level->game] ?? [];
-
-    $levelsByGame[$level->game][] = [
-      'name' => $level->name,
-      'avg' => $avg,
-      'cnt' => $cnt,
-      'user' => $userRating,
-      'diff' => $difference
-    ];
-  }
+  $levelsByGame = groupLevelsByGame($levelRatings, $userRatings, !isset($_GET['global']));
 
   //
   // Sort if needed
   //
-  $sort = filter_input(INPUT_GET, 'sort', FILTER_UNSAFE_RAW, FILTER_REQUIRE_SCALAR);
+
   foreach ($levelsByGame as &$gameRatings) {
     switch ($sort) {
-      case 'avg': sortArrayByProperty($gameRatings, 'avg'); break;
-      case 'cnt': sortArrayByProperty($gameRatings, 'cnt'); break;
-      case 'user': sortArrayByProperty($gameRatings, 'user'); break;
-      case 'diff': sortArrayByProperty($gameRatings, 'diff'); break;
+      case 'avg':
+      case 'cnt':
+      case 'user':
+      case 'diff':
+        sortArrayByProperty($gameRatings, $sort);
+        break;
     }
   }
 
@@ -81,13 +66,14 @@
     }
   }
 
+  $linkAddition = (empty($userRatings) ? '' : '&amp;me=' . urlencode($user))
+    . (isset($_GET['global']) ? '&amp;global' : '');
   echo '<table>';
   foreach ($levelsByGame as $game => $levels) {
     echo '<tr><td colspan="' . count($columns) . '" class="gametitle"><h2 id="' . $game . '">'
       . str_replace('TR', 'Tomb Raider ', $game)
       . '</h2></td></tr><tr class="header">';
 
-    $linkAddition = empty($userRatings) ? '' : '&amp;me=' . urlencode($user);
     foreach ($columns as $column) {
       if ($sortedColumn === $column[0]) {
         echo '<td>' . htmlspecialchars($column[0]) . ' ↓</td>';
@@ -124,6 +110,32 @@
       $ratingsByLevelId[$row['level']] = $row;
     }
     return $ratingsByLevelId;
+  }
+
+  function groupLevelsByGame(array $levelRatings, array $userRatings, bool $groupByGame): array {
+    $levelsByGame = [];
+    foreach (LevelHolder::getLevels() as $level) {
+      $levelId = $level->aliases[0];
+      $group = $groupByGame ? $level->game : 'Ratings';
+      $name = $level->name . ($groupByGame ? '' : " ($level->game)");
+
+      $levelRating = $levelRatings[$levelId] ?? null;
+      $avg = $levelRating ? round($levelRating['avg'], 2) : null;
+      $cnt = $levelRating ? $levelRating['cnt'] : null;
+      $userRating = $userRatings[$levelId] ?? null;
+      $difference = ($userRating && $avg) ? ($userRating - $avg) : null;
+
+      $levelsByGame[$group] = $levelsByGame[$group] ?? [];
+
+      $levelsByGame[$group][] = [
+        'name' => $name,
+        'avg' => $avg,
+        'cnt' => $cnt,
+        'user' => $userRating,
+        'diff' => $difference
+      ];
+    }
+    return $levelsByGame;
   }
 
   function getColorForRating(?float $rating): string {
@@ -202,7 +214,7 @@
     return ($addPlusIfPositive && $number > 0) ? '+' . $number : $number;
   }
 
-  function outputTwitchInfo(?string $user): void {
+  function outputTwitchInfo(?string $user, ?string $sort): void {
     if (isset($_SESSION['twitch_name'])) {
       $nameEscaped = htmlspecialchars($_SESSION['twitch_name']);
       echo "<div class='twitchconnect'>You are logged in as <b>$nameEscaped</b>. "
@@ -217,6 +229,15 @@ HTML;
     echo '<p>Click on any table header to sort by it.';
     if (isset($_SESSION['twitch_name']) && $_SESSION['twitch_name'] !== $user) {
       echo " <a href='index.php?me=" . urlencode($_SESSION['twitch_name']) . "'>Show your ratings</a>";
+    }
+    echo '</p><p>';
+
+    $pageQuery = ($user ? '&amp;me=' . urlencode($user) : '')
+      . ($sort ? '&amp;sort=' . urlencode($sort) : '');
+    if (isset($_GET['global'])) {
+      echo '<a href="?f' . $pageQuery . '">Group ratings by game</a>';
+    } else {
+      echo '<a href="?global' . $pageQuery . '">Show all ratings in same table</a>';
     }
     echo '</p>';
   }
