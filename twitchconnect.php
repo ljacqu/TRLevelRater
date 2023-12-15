@@ -7,8 +7,12 @@ require './assets/Page.php';
 Page::outputStart('Twitch account');
 
 if (isset($_SESSION['twitch_name'])) {
-  echo '<h1>You are already connected as ' . htmlspecialchars($_SESSION['twitch_name']) . '</h1>';
-  echo 'You can remove your account association from this page by <a href="twitchdisconnect.php">disconnecting</a>.';
+  echo '<h1>You are connected as ' . htmlspecialchars($_SESSION['twitch_name']) . '</h1>
+  <p>Your Twitch account, <b>' . htmlspecialchars($_SESSION['twitch_name']) . '</b>, is connected, allowing you to
+     create and edit TR level ratings.</p>
+  <div style="margin: 1em; padding: 1em; display: inline-block; font-weight: bold">
+    <a href="webrate.php">Manage your ratings</a> &middot; <a href="index.php">Ratings overview</a>
+  </div>';
 } else if (empty(Configuration::TWITCH_CLIENT_ID) || empty(Configuration::TWITCH_CLIENT_SECRET)) {
   echo '<p>Twitch app information is not available.
     <br />Please contact the website administrator.</p>';

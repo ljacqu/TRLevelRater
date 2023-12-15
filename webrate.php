@@ -1,5 +1,4 @@
 <?php
-
 session_start();
 
 if (!isset($_SESSION['twitch_name'])) {
@@ -15,8 +14,8 @@ require './assets/Page.php';
 
 $db = new DatabaseHandler();
 
-Page::outputStart('Tomb Raider ratings');
-echo '<h1>Tomb Raider ratings</h1>
+Page::outputStart('Edit Tomb Raider ratings');
+echo '<h1>Edit Tomb Raider ratings</h1>
   <p>You are currently connected as <b>' . htmlspecialchars($_SESSION['twitch_name']) . '</b>. Log out with the "Disconnect" link at the bottom of the page.</p>
   <p> &nbsp; &raquo; <a href="index.php?me=' . htmlspecialchars($_SESSION['twitch_name'], ENT_QUOTES) . '">Compare your ratings to the average</a></p>
 <p>
