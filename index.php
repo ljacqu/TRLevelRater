@@ -11,7 +11,7 @@
 
   $user = filter_input(INPUT_GET, 'me', FILTER_UNSAFE_RAW, FILTER_REQUIRE_SCALAR);
   $sort = filter_input(INPUT_GET, 'sort', FILTER_UNSAFE_RAW, FILTER_REQUIRE_SCALAR);
-  outputTwitchInfo($user, $sort);
+  outputTableInfoAndLinks($user, $sort);
 
   //
   // Get average rating, and user rating if desired
@@ -29,7 +29,7 @@
   //
   // Create level data entries
   //
-  $levelsByGame = groupLevelsByGame($levelRatings, $userRatings, !isset($_GET['global']));
+  $levelsByGame = createAndGroupLevelEntries($levelRatings, $userRatings, !isset($_GET['global']));
 
   //
   // Sort if needed
@@ -112,7 +112,7 @@
     return $ratingsByLevelId;
   }
 
-  function groupLevelsByGame(array $levelRatings, array $userRatings, bool $groupByGame): array {
+  function createAndGroupLevelEntries(array $levelRatings, array $userRatings, bool $groupByGame): array {
     $levelsByGame = [];
     foreach (LevelHolder::getLevels() as $level) {
       $levelId = $level->aliases[0];
@@ -214,21 +214,25 @@
     return ($addPlusIfPositive && $number > 0) ? '+' . $number : $number;
   }
 
-  function outputTwitchInfo(?string $user, ?string $sort): void {
+  function outputTableInfoAndLinks(?string $user, ?string $sort): void {
     if (isset($_SESSION['twitch_name'])) {
       $nameEscaped = htmlspecialchars($_SESSION['twitch_name']);
-      echo "<div class='twitchconnect'>You are logged in as <b>$nameEscaped</b>. "
-        . "<a href='webrate.php'>Edit your ratings</a></div>";
+      echo "<p>You are logged in as <b>$nameEscaped</b>. <a href='webrate.php'>Edit your ratings</a></p>";
     } else {
-      echo <<<HTML
-<div class="twitchconnect">
-  You can log in with Twitch to submit your ratings! <a href="twitchconnect.php">Connect with Twitch</a>
-</div>
-HTML;
+      echo '<p>You can log in with Twitch to submit your ratings! <a href="twitchconnect.php">Connect with Twitch</a></p>';
     }
-    echo '<p>Click on any table header to sort by it.';
-    if (isset($_SESSION['twitch_name']) && $_SESSION['twitch_name'] !== $user) {
-      echo " <a href='index.php?me=" . urlencode($_SESSION['twitch_name']) . "'>Show your ratings</a>";
+
+    echo '<p>Click on any table header to sort by it. ';
+    if (isset($_SESSION['twitch_name'])) {
+      $linkQueryBegin = '?'
+        . (isset($_GET['global']) ? 'global' : 'f')
+        . ($sort ? '&amp;sort=' . urlencode($sort) : '');
+      if ($_SESSION['twitch_name'] === $user) {
+        echo "<a href='$linkQueryBegin'>Hide your ratings</a>";
+      } else {
+        $linkWithUser = $linkQueryBegin . '&amp;me=' . urlencode($_SESSION['twitch_name']);
+        echo "<a href='$linkWithUser'>Show your ratings</a>";
+      }
     }
     echo '</p><p>';
 
