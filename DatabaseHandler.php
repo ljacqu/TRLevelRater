@@ -18,7 +18,8 @@ class DatabaseHandler {
     $stmt->bindParam('user', $user);
     $stmt->bindParam('level', $level);
     $stmt->execute();
-    return $stmt->fetch();
+    $result = $stmt->fetch();
+    return $result ?: null;
   }
 
   function getRatings(string $user): array {
